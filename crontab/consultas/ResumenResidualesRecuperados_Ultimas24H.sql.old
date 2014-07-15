@@ -1,0 +1,10 @@
+SELECT MIN(P.fecha) as "F Primera",MAX(P.fecha) as "F Ultima",
+COUNT(DISTINCT P.id_pedido) as "NumPedidos",
+ROUND(SUM(Ld.monto_total),2) as "Bruto",
+COUNT(DISTINCT F.id_factura) as "NumFras",
+ROUND(SUM(Fd.importe),2) as "BrutoFra"
+FROM Facturas F JOIN Facturas_detalle Fd ON (Fd.id_factura=F.id_factura)
+JOIN Lineas_detalle Ld ON (Ld.id_detalle=Fd.id_detalle)
+JOIN Pedidos P ON (Ld.id_pedido=P.id_pedido)
+WHERE F.fecha >= DATE_SUB(NOW(),INTERVAL 1 DAY)
+AND (F.id_proveedor = 0 OR F.id_proveedor IS NULL) AND P.residual > 0

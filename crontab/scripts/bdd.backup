@@ -1,0 +1,24 @@
+#!/bin/bash
+
+APPPATH='/Volumes/Data/www/';
+BKPPATH='/Volumes/Data/bdd/backups/';
+
+cd $APPPATH;
+for app in `find * -maxdepth 0 -type d`; do
+	if [ -x $APPPATH/$app/bin/backup_data.sh ]; then
+		echo -n "Dumping DATA for $app .. "
+		cd $APPPATH/$app;
+		bkpid=`bin/backup_data.sh -q`;
+		if [ ! -d $BKPPATH/$app/ ]; then 
+			echo "Creando $BKPPATH/$app/"
+			mkdir $BKPPATH/$app
+		fi;
+		if [ ! -z "$bkpid" ]; then
+			mv dbs/backups/$bkpid/ $BKPPATH/$app/.
+			echo " ID: $bkpid => ok "
+		else 
+			echo " failed! "
+		fi;
+	fi;
+done;
+
