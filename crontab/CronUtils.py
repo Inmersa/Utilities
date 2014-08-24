@@ -13,227 +13,234 @@ from email.MIMEText import MIMEText
 from email.MIMEImage import MIMEImage
 
 class CrontabParams :
-   mainsection = 'General'
-   __dCfgGroups = {}
-   __dCfgVars = {}
-   aRequiredFields = None
-   aRequiredPaths = None
-   dCfg = {}
-   aLocalGroups = None
-   bStatusOK = True
-   oConfig = None
+    mainsection = 'General'
+    __dCfgGroups = {}
+    __dCfgVars = {}
+    aRequiredFields = None
+    aRequiredPaths = None
+    dCfg = {}
+    aLocalGroups = None
+    bStatusOK = True
+    oConfig = None
 
-   def __init__ (this,oCfg,seccion):
-      tmpOpts = oCfg.options(this.mainsection)
-      if not len(tmpOpts): 
-         this.bStatusOK = False
-         return None
-      this.dCfg = {}
-      this.__dCfgGroups = {}
-      this.__dCfgVars = {}
+    def __init__ (self,oCfg,seccion):
+        tmpOpts = oCfg.options(self.mainsection)
+        if not len(tmpOpts): 
+            self.bStatusOK = False
+            return None
+        self.dCfg = {}
+        self.__dCfgGroups = {}
+        self.__dCfgVars = {}
 
-      this.dCfg['__seccion__'] = seccion
-      this.oConfig = oCfg
+        self.dCfg['__seccion__'] = seccion
+        self.oConfig = oCfg
 
-      for i in range(len(tmpOpts)):
-         if tmpOpts[i].find('_') != -1:
-            aTmp = tmpOpts[i].split('_')
-            if len(aTmp) > 1:
-               if not this.__dCfgGroups.has_key(aTmp[0]): this.__dCfgGroups[aTmp[0]] = {}
-               if oCfg.has_option(seccion,tmpOpts[i]):
-                  this.__dCfgGroups[aTmp[0]][aTmp[1]] = oCfg.get(seccion,tmpOpts[i])
-               else:
-                  this.__dCfgGroups[aTmp[0]][aTmp[1]] = oCfg.get(this.mainsection,tmpOpts[i])
-         else:
-            if oCfg.has_option(seccion,tmpOpts[i]):
-               this.__dCfgVars[tmpOpts[i]] = oCfg.get(seccion,tmpOpts[i])
+        for i in range(len(tmpOpts)):
+            if tmpOpts[i].find('_') != -1:
+                aTmp = tmpOpts[i].split('_')
+                if len(aTmp) > 1:
+                    if not self.__dCfgGroups.has_key(aTmp[0]): self.__dCfgGroups[aTmp[0]] = {}
+                    if oCfg.has_option(seccion,tmpOpts[i]):
+                        self.__dCfgGroups[aTmp[0]][aTmp[1]] = oCfg.get(seccion,tmpOpts[i])
+                    else:
+                        self.__dCfgGroups[aTmp[0]][aTmp[1]] = oCfg.get(self.mainsection,tmpOpts[i])
             else:
-               this.__dCfgVars[tmpOpts[i]] = oCfg.get(this.mainsection,tmpOpts[i])
+                if oCfg.has_option(seccion,tmpOpts[i]):
+                    self.__dCfgVars[tmpOpts[i]] = oCfg.get(seccion,tmpOpts[i])
+                else:
+                    self.__dCfgVars[tmpOpts[i]] = oCfg.get(self.mainsection,tmpOpts[i])
 
-      if this.aRequiredFields and len(this.aRequiredFields):
-         for i in range(len(this.aRequiredFields)):
-            fld = this.aRequiredFields[i]
-            if not fld: continue
-            if oCfg.has_option(seccion,fld):
-               sval = oCfg.get(seccion,fld)
-            else: sval=None
+        if self.aRequiredFields and len(self.aRequiredFields):
+            for i in range(len(self.aRequiredFields)):
+                fld = self.aRequiredFields[i]
+                if not fld: continue
+                if oCfg.has_option(seccion,fld):
+                    sval = oCfg.get(seccion,fld)
+                else: sval=None
 
-            if fld.find('_') != -1:
-               aTmp = fld.split('_')
-               if len(aTmp) > 1:
-                  if sval: this.setCfgVarFromGroup(aTmp[0],aTmp[1],sval)
-                  val = this.getCfgVarFromGroup(aTmp[0],aTmp[1])
-                  if not val:
-                     print "Campo obligatorio ",fld," no cumplimentado "
-                     this.bStatusOK = False
-                     return None
-            else:
-               if sval: this.setCfgVar(fld,sval)
-               val = this.getCfgVar(fld)
-               if not val:
-                  print "Campo obligatorio ",fld," no cumplimentado "
-                  this.bStatusOK = False
-                  return None
+                if fld.find('_') != -1:
+                    aTmp = fld.split('_')
+                    if len(aTmp) > 1:
+                        if sval: self.setCfgVarFromGroup(aTmp[0],aTmp[1],sval)
+                        val = self.getCfgVarFromGroup(aTmp[0],aTmp[1])
+                        if not val:
+                            print "Campo obligatorio ",fld," no cumplimentado "
+                            self.bStatusOK = False
+                            return None
+                else:
+                    if sval: self.setCfgVar(fld,sval)
+                    val = self.getCfgVar(fld)
+                    if not val:
+                        print "Campo obligatorio ",fld," no cumplimentado "
+                        self.bStatusOK = False
+                        return None
 
-      if this.aRequiredPaths and len(this.aRequiredPaths):
-         for i in range(len(this.aRequiredPaths)):
-            tmppath = this.aRequiredPaths[i]
-            if not tmppath: continue
-            if oCfg.has_option(seccion,tmppath): sval = oCfg.get(seccion,tmppath)
-            else: sval=None
+        if self.aRequiredPaths and len(self.aRequiredPaths):
+            for i in range(len(self.aRequiredPaths)):
+                tmppath = self.aRequiredPaths[i]
+                if not tmppath: continue
+                if oCfg.has_option(seccion,tmppath): sval = oCfg.get(seccion,tmppath)
+                else: sval=None
 
-            if tmppath.find('_') != -1:
-               aTmp = tmppath.split('_')
-               if len(aTmp) > 1:
-                  if sval: this.setCfgVarFromGroup(aTmp[0],aTmp[1],sval)
-                  val = this.getCfgVarFromGroup(aTmp[0],aTmp[1])
-                  if not val:
-                     print "Campo obligatorio ",tmppath," no cumplimentado "
-                     this.bStatusOK = False
-                     return None
-                  if not os.path.isdir(val):
-                     this.setCfgVarFromGroup(aTmp[0],aTmp[1],None)
-                     print "Path inexistente ",val
-                     continue
-            else:
-               if sval: this.setCfgVar(tmppath,sval)
-               val = this.getCfgVar(tmppath)
-               if not val:
-                  print "Campo obligatorio ",tmppath," no cumplimentado ", val
-                  this.bStatusOK = False
-                  return None
-               if not os.path.isdir(val):
-                  this.setCfgVarFromGroup(aTmp[0],aTmp[1],None)
-                  print "Path inexistente ",val
-                  this.bStatusOK = False
-                  continue
+                if tmppath.find('_') != -1:
+                    aTmp = tmppath.split('_')
+                    if len(aTmp) > 1:
+                        if sval: self.setCfgVarFromGroup(aTmp[0],aTmp[1],sval)
+                        val = self.getCfgVarFromGroup(aTmp[0],aTmp[1])
+                        if not val:
+                            print "Campo obligatorio ",tmppath," no cumplimentado "
+                            self.bStatusOK = False
+                            return None
+                        if not os.path.isdir(val):
+                            self.setCfgVarFromGroup(aTmp[0],aTmp[1],None)
+                            print "Path inexistente ",val
+                            continue
+                else:
+                    if sval: self.setCfgVar(tmppath,sval)
+                    val = self.getCfgVar(tmppath)
+                    if not val:
+                        print "Campo obligatorio ",tmppath," no cumplimentado ", val
+                        self.bStatusOK = False
+                        return None
+                    if not os.path.isdir(val):
+                        self.setCfgVarFromGroup(aTmp[0],aTmp[1],None)
+                        print "Path inexistente ",val
+                        self.bStatusOK = False
+                        continue
 
-      if this.aLocalGroups and len(this.aLocalGroups):
-         tmpOpts = oCfg.options(seccion)
-         for i in range(len(tmpOpts)):
-            if tmpOpts[i].find('_') == -1:
-               this.dCfg[tmpOpts[i]] = oCfg.get(seccion,tmpOpts[i])
-            else:
-               aTmp = tmpOpts[i].split('_')
-               if len(aTmp) > 1:
-                  if aTmp[0] in this.aLocalGroups:
-                     if not this.dCfg.has_key(aTmp[0]) or type(this.dCfg[aTmp[0]]) is not DictType: this.dCfg[aTmp[0]] = {}
-                     this.dCfg[aTmp[0]][aTmp[1]] = oCfg.get(seccion,tmpOpts[i])
-                  else: this.dCfg[tmpOpts[i]] = oCfg.get(seccion,tmpOpts[i])
+        if self.aLocalGroups and len(self.aLocalGroups):
+            tmpOpts = oCfg.options(seccion)
+            for i in range(len(tmpOpts)):
+                if tmpOpts[i].find('_') == -1:
+                    self.dCfg[tmpOpts[i]] = oCfg.get(seccion,tmpOpts[i])
+                else:
+                    aTmp = tmpOpts[i].split('_')
+                    if len(aTmp) > 1:
+                        if aTmp[0] in self.aLocalGroups:
+                            if not self.dCfg.has_key(aTmp[0]) or type(self.dCfg[aTmp[0]]) is not DictType: self.dCfg[aTmp[0]] = {}
+                            self.dCfg[aTmp[0]][aTmp[1]] = oCfg.get(seccion,tmpOpts[i])
+                        else: self.dCfg[tmpOpts[i]] = oCfg.get(seccion,tmpOpts[i])
+   
+    def getCfgGroup (self,gname):
+        if not gname: return None
+        if not self.__dCfgGroups.has_key(gname): return None
+        return self.__dCfgGroups[gname]
 
-   def getCfgGroup (this,gname):
-      if not gname: return None
-      if not this.__dCfgGroups.has_key(gname): return None
-      return this.__dCfgGroups[gname]
+    def getCfgVar (self,vname):
+        if not vname: return None
+        if not self.__dCfgVars.has_key(vname): return None
+        return self.__dCfgVars[vname]
+   
+    def setCfgVar (self,vname,val):
+        if not vname or not val: return False
+        self.__dCfgVars[vname] = val
+        return True
+   
+    def getCfgVarFromGroup (self,gname,vname):
+        if not gname: return None
+        if not self.__dCfgGroups.has_key(gname): return None
+        if type(self.__dCfgGroups[gname]) is not DictType: return None
+        if not self.__dCfgGroups[gname].has_key(vname): return None
+        return self.__dCfgGroups[gname][vname]
 
-   def getCfgVar (this,vname):
-      if not vname: return None
-      if not this.__dCfgVars.has_key(vname): return None
-      return this.__dCfgVars[vname]
+    def setCfgVarFromGroup (self,gname,vname,val):
+        if not gname or not vname or not self.__dCfgGroups.has_key(gname) or \
+            type(self.__dCfgGroups[gname]) is not DictType : return False
+        self.__dCfgGroups[gname][vname] = val
+        return True
 
-   def setCfgVar (this,vname,val):
-      if not vname or not val: return False
-      this.__dCfgVars[vname] = val
-      return True
+    def getVar(self,gname,vname = None):
+        if not vname and gname: 
+            vname = gname
+            gname = None
+        if not vname: return None
+        if gname and vname :
+            if not self.dCfg.has_key(gname) or \
+                type(self.dCfg[gname]) is not DictType or \
+                not self.dCfg[gname].has_key(vname): return None
+            return self.dCfg[gname][vname]
+        else:
+            if not self.dCfg.has_key(vname): return None
+            return self.dCfg[vname]
+  
+    def resultsFromSQLFile(self,fuente):
+       path = self.getCfgVarFromGroup('sql','path')
+       if not os.path.isfile(path + '/' + fuente):
+          print "No se ha posido localizar el fichero (",path+'/'+fuente,") "
+          return None
+       dMysql = self.getCfgGroup('mysql')
+       file = path + '/' + fuente
 
-   def getCfgVarFromGroup (this,gname,vname):
-      if not gname: return None
-      if not this.__dCfgGroups.has_key(gname): return None
-      if type(this.__dCfgGroups[gname]) is not DictType: return None
-      if not this.__dCfgGroups[gname].has_key(vname): return None
-      return this.__dCfgGroups[gname][vname]
+       f = open(file,'r')
+       consulta = f.read()
+       f.close()
+       oDb = MySQLdb.connect(host=dMysql['server'],user=dMysql['user'],passwd=dMysql['pass'],db=dMysql['dbase'],port=int(dMysql['port']))
+       c = oDb.cursor(MySQLdb.cursors.DictCursor)
 
-   def setCfgVarFromGroup (this,gname,vname,val):
-      if not gname or not vname or not this.__dCfgGroups.has_key(gname) or \
-         type(this.__dCfgGroups[gname]) is not DictType : return False
-      this.__dCfgGroups[gname][vname] = val
-      return True
+       aRetVal = {}
+       aTmp = consulta.split(";\n")
+       for cons in aTmp:
+          tmpcons = cons.replace(" ","")
+          if not tmpcons or not len(tmpcons): continue
+          tmpcons = cons.replace("\n","")
+          if not tmpcons or not len(tmpcons): continue
+          aFieldOrder = []
+          try:
+             c.execute(cons)
+             aVal = c.fetchall()
+             if c.description and len(c.description):
+                for d in c.description: 
+                   aFieldOrder.append(d[0])
+          except Exception,e:
+             aVal = [{'Error':str(e),'Consulta':cons,'file':file,'path':path}]
 
-   def getVar(this,gname,vname = None):
-      if not vname and gname: 
-         vname = gname
-         gname = None
-      if not vname: return None
-      if gname and vname :
-         if not this.dCfg.has_key(gname) or \
-            type(this.dCfg[gname]) is not DictType or \
-            not this.dCfg[gname].has_key(vname): return None
-         return this.dCfg[gname][vname]
-      else:
-         if not this.dCfg.has_key(vname): return None
-         return this.dCfg[vname]
+          aRetVal['ResultSet'] = list()
+          if aVal and len(aVal):
+             for val in aVal: 
+                if val and len(val): 
+                   aRetVal['ResultSet'].append(val)
+          if aFieldOrder and len(aFieldOrder): aRetVal['SQLOrder'] = aFieldOrder
+       return aRetVal
 
-   def ResultsFromSQLFile(this,fuente):
-      path = this.getCfgVarFromGroup('sql','path')
-      if not os.path.isfile(path + '/' + fuente):
-         print "No se ha posido localizar el fichero (",path+'/'+fuente,") "
-         return None
-      dMysql = this.getCfgGroup('mysql')
-      file = path + '/' + fuente
 
-      f = open(file,'r')
-      consulta = f.read()
-      f.close()
-      oDb = MySQLdb.connect(host=dMysql['server'],user=dMysql['user'],passwd=dMysql['pass'],db=dMysql['dbase'],port=int(dMysql['port']))
-      c = oDb.cursor(MySQLdb.cursors.DictCursor)
 
-      aRetVal = {}
-      aTmp = consulta.split(";\n")
-      for cons in aTmp:
-         tmpcons = cons.replace(" ","")
-         if not tmpcons or not len(tmpcons): continue
-         tmpcons = cons.replace("\n","")
-         if not tmpcons or not len(tmpcons): continue
-         aFieldOrder = []
-         try:
-            c.execute(cons)
-            aVal = c.fetchall()
-            if c.description and len(c.description):
-               for d in c.description: 
-                  aFieldOrder.append(d[0])
-         except Exception,e:
-            aVal = [{'Error':str(e),'Consulta':cons,'file':file,'path':path}]
-
-         aRetVal['ResultSet'] = list()
-         if aVal and len(aVal):
-            for val in aVal: 
-               if val and len(val): 
-                  aRetVal['ResultSet'].append(val)
-         if aFieldOrder and len(aFieldOrder): aRetVal['SQLOrder'] = aFieldOrder
-      return aRetVal
-
+# Crear una clase padre para los distitnos metodos de dTipo. Con acceso a este 'CrontabParams'
+#    dTipos =  'sql':SQLFileQuery 'html':HTMLFetch, 'system':SysExec
+# Cada clase de estas, tiene que tener un metodo run, que equivale al metodo padre "resultsFromSQLFile" 
 
 class SQLFileQuery (CrontabParams):
    aRequiredFields = ('mysql_server','mysql_user','mysql_pass','mysql_dbase')
    aRequiredPaths = ('sql_path','base-path')
 
-   def __init__ (this,oCfg,seccion):
+   def __init__ (self,oCfg,seccion):
       # TODO: Esto deberia ser un rais (en todos los sitios)
       if not seccion: return None
 
-      this.aLocalGroups = ('mysql')
-      CrontabParams.__init__ (this,oCfg,seccion)
-      dMysql = this.getCfgGroup('mysql')
+      self.aLocalGroups = ('mysql')
+      CrontabParams.__init__ (self,oCfg,seccion)
+      dMysql = self.getCfgGroup('mysql')
       if not len(dMysql): return None
 
-   def getMimeResult (this):
-      if not this.bStatusOK: return None
+   
+   
+   def getMimeResult (self):
+      if not self.bStatusOK: return None
 
-      fuente = this.getVar('fuente')
+      fuente = self.getVar('fuente')
       if not fuente:
          print "No se ha indicado el fichero con la consulta. "
          return None
 
 
-      nombre_out = this.getVar('nombre-adjunto')
-      sec = this.getVar('__seccion__')
+      nombre_out = self.getVar('nombre-adjunto')
+      sec = self.getVar('__seccion__')
       if not nombre_out:
          if fuente.find('.') != -1:
             aTmp = fuente.split('.')
             nombre_out = aTmp[0] 
          else: nombre_out = fuente 
 
-      aRS = this.ResultsFromSQLFile(fuente)
+      aRS = self.resultsFromSQLFile(fuente)
       aVal = aRS['ResultSet']
       if aRS.has_key('SQLOrder'): aOrden = aRS['SQLOrder']
       else: aOrden = None
@@ -267,9 +274,9 @@ class SQLFileQuery (CrontabParams):
                return oCuerpo
 
       if not rawfile: return None
-      tipo_mime = this.getVar('tipo-mime')
+      tipo_mime = self.getVar('tipo-mime')
       if not tipo_mime or not len(tipo_mime): tipo_mime = 'application/vnd.ms-excel'
-      disp = this.getCfgVar('disposicion')
+      disp = self.getCfgVar('disposicion')
       if disp in (None,'adjunto'): disp = 'attachment'
       elif disp in ('interno','in','dentro'): disp = 'inline'
       else: disp = 'attachment'
@@ -284,51 +291,54 @@ class SQLFileQuery (CrontabParams):
       return oCuerpo
 
 
+
 class HTMLFetch (CrontabParams):
    aRequiredFields = ('servidor',None)
 
-   def __init__ (this,oCfg,seccion):
+   def __init__ (self,oCfg,seccion):
       # TODO: Esto deberia ser un rais (en todos los sitios)
       if not seccion: return None
-      this.aLocalGroups = ('form','get')
-      CrontabParams.__init__ (this,oCfg,seccion)
+      self.aLocalGroups = ('form','get')
+      CrontabParams.__init__ (self,oCfg,seccion)
 
-   def getMimeResult (this):
-      if not this.bStatusOK: return None
+   
+   
+   def getMimeResult (self):
+      if not self.bStatusOK: return None
 
-      servername = this.getCfgVar('servidor')
-      relurl = this.getVar('url-relativa')
-      nombre_out = this.getVar('nombre-adjunto')
-      sec = this.getVar('__seccion__')
+      servername = self.getCfgVar('servidor')
+      relurl = self.getVar('url-relativa')
+      nombre_out = self.getVar('nombre-adjunto')
+      sec = self.getVar('__seccion__')
       if not nombre_out: nombre_out = servername
       if not relurl: url = servername
       else: url = servername + '/' + relurl
 
       bSQLGet = False
-      fuentesql = this.getVar('form','fuentesql')
-      prefix = this.getVar('fuentesql-prefijo')
+      fuentesql = self.getVar('form','fuentesql')
+      prefix = self.getVar('fuentesql-prefijo')
       namefld = None
       if not fuentesql: 
-         fuentesql = this.getVar('get','fuentesql')
+         fuentesql = self.getVar('get','fuentesql')
          if fuentesql: 
             bSQLGet = True
-            emailfld = this.getVar('get','fuentesql-campoemail')
-            namefld = this.getVar('get','fuentesql-camponombre')
+            emailfld = self.getVar('get','fuentesql-campoemail')
+            namefld = self.getVar('get','fuentesql-camponombre')
       else:
-         emailfld = this.getVar('form','fuentesql-campoemail')
-         namefld = this.getVar('form','fuentesql-camponombre')
+         emailfld = self.getVar('form','fuentesql-campoemail')
+         namefld = self.getVar('form','fuentesql-camponombre')
 
       if not fuentesql: ntimes = 1
       else:
-         aRS = this.ResultsFromSQLFile(fuentesql)
+         aRS = self.resultsFromSQLFile(fuentesql)
          aVal = aRS['ResultSet']
          ntimes = len(aVal)
 
-      defaultemail = this.getVar('email')
-      if not defaultemail: defaultemail = this.getCfgVar('email')
-      tipo_mime = this.getVar('tipo-mime')
+      defaultemail = self.getVar('email')
+      if not defaultemail: defaultemail = self.getCfgVar('email')
+      tipo_mime = self.getVar('tipo-mime')
       if not tipo_mime: tipo_mime = 'text/html'
-      disp = this.getCfgVar('disposicion')
+      disp = self.getCfgVar('disposicion')
       if disp in (None,'adjunto'): disp = 'attachment'
       elif disp in ('interno','in','dentro','en el mail'): disp = 'inline'
       else: disp = 'attachment'
@@ -351,7 +361,7 @@ class HTMLFetch (CrontabParams):
             if prefix: nombre_file = prefix + ' ' +  str(n)
             else: nombre_file = nombre_out + str(n)
          #Obtenemos Variables POST
-         vars = this.getVar('form','vars')
+         vars = self.getVar('form','vars')
          dTmp = {}
          if fuentesql and not bSQLGet:
             aTmp = aV.keys()
@@ -362,13 +372,13 @@ class HTMLFetch (CrontabParams):
          if vars and len(vars):
             aTmp = vars.split(' ')
             for vname in aTmp: 
-               dTmp[vname] = this.getVar(vname)
-               sec = this.getVar('__seccion__')
-               if not dTmp[vname] and sec and this.oConfig.has_option(sec,vname): dTmp[vname] = this.oConfig.get(sec,vname)
+               dTmp[vname] = self.getVar(vname)
+               sec = self.getVar('__seccion__')
+               if not dTmp[vname] and sec and self.oConfig.has_option(sec,vname): dTmp[vname] = self.oConfig.get(sec,vname)
             encodedform = urllib.urlencode(dTmp)
          else: encodedform = ''
          #Obtenemos Variables GET
-         vars = this.getVar('get','vars')
+         vars = self.getVar('get','vars')
          dTmp = {}
          if fuentesql and bSQLGet:
             aTmp = aV.keys()
@@ -378,9 +388,9 @@ class HTMLFetch (CrontabParams):
          if vars and len(vars):
             aTmp = vars.split(' ')
             for vname in aTmp: 
-               dTmp[vname] = this.getVar(vname)
-               sec = this.getVar('__seccion__')
-               if not dTmp[vname] and sec and this.oConfig.has_option(sec,vname): dTmp[vname] = this.oConfig.get(sec,vname)
+               dTmp[vname] = self.getVar(vname)
+               sec = self.getVar('__seccion__')
+               if not dTmp[vname] and sec and self.oConfig.has_option(sec,vname): dTmp[vname] = self.oConfig.get(sec,vname)
             encodedget = '?'+urllib.urlencode(dTmp)
          else: encodedget = ''
 
@@ -413,26 +423,29 @@ class HTMLFetch (CrontabParams):
       return oCuerpo
 
 
+
 class SysExec (CrontabParams):
    aRequiredFields = ('fuente',None)
    aRequiredPaths = ('scripts-path',None)
 
-   def __init__ (this,oCfg,seccion):
+   def __init__ (self,oCfg,seccion):
       # TODO: Esto deberia ser un RaiseError (en todos los sitios)
       if not seccion: return None
-      this.aLocalGroups = ('form','get')
-      CrontabParams.__init__ (this,oCfg,seccion)
+      self.aLocalGroups = ('form','get')
+      CrontabParams.__init__ (self,oCfg,seccion)
 
-   def getMimeResult (this):
-      if not this.bStatusOK: return None
+   
+   
+   def getMimeResult (self):
+      if not self.bStatusOK: return None
       # TODO: Permmitir enviar parametros al script
 
-      fuente = this.getVar('fuente')
-      path = this.getCfgVar('scripts-path')
+      fuente = self.getVar('fuente')
+      path = self.getCfgVar('scripts-path')
 
-      tipo_mime = this.getVar('tipo-mime')
+      tipo_mime = self.getVar('tipo-mime')
       if not tipo_mime: tipo_mime = 'text/plain'
-      disp = this.getCfgVar('disposicion')
+      disp = self.getCfgVar('disposicion')
       if disp in (None,'adjunto'): disp = 'attachment'
       elif disp in ('interno','in','dentro','en el mail'): disp = 'inline'
       else: disp = 'attachment'
