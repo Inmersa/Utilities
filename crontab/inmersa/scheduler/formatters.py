@@ -317,7 +317,7 @@ class ExcelFormat(DataFormatter):
     
     def _load(self,Extract):
         wb = xlwt.Workbook('ISO-8859-15')
-        ws = wb.add_sheet(self.params.seccion())
+        ws = wb.add_sheet(self.params.seccion()[:30])
         tmp = Extract.getvalue()
         aVal = tmp[0]
         if tmp[1]: aOrden = tmp[1]
