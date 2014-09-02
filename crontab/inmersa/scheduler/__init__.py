@@ -178,12 +178,14 @@ class Schedule():
                 if not oI: continue
                 oI.run()
                 oTmpMsg = oI.getMimeResult()
+#                if not isinstance(oTmpMsg,(list)): self.logger.debug("%s: Before closing .. Here is our message!\n%s"%(self.config.seccion(),oTmpMsg.as_string()))
                 oI.close()
                 
                 #TODO: Here, issue and log an error before continuing
                 if not oTmpMsg or (type(oTmpMsg) is not DictType and type(oTmpMsg) is not InstanceType) : 
                     self.logger.debug("No message! ")
                     continue
+#                if not isinstance(oTmpMsg,(list)): self.logger.debug("%s: Here is our message!\n%s"%(self.config.seccion(),oTmpMsg.as_string()))
 
                 aEmails = list()
                 if self.config.has_option(seccion,'email'):
@@ -191,36 +193,46 @@ class Schedule():
                     aTmp = tmp.split(' ')
                     for e in aTmp: aEmails.append(e)
                 else: aEmails = aEmailDef
-                self.logger.debug("%s: Recipients on this section: %s " % (self.config.seccion(),aEmails))
+                self.logger.debug("%s: Standard recipients on this section: %s " % (self.config.seccion(),aEmails))
 
                 if type(oTmpMsg) is InstanceType:
                     if aEmails and len(aEmails):
                         for e in aEmails:
+                            bAttach = True
                             if not dEmailList.has_key(e):
-                                dEmailList[e] = MIMEMultipart()
+                                if False and isinstance(oTmpMsg,(MIMEMultipart)):
+                                    self.logger.debug("%s: turns out we already have a multipart"%(self.config.seccion()))
+                                    dEmailList[e] = oTmpMsg
+                                    bAttach = False
+                                else:
+                                    self.logger.debug("%s: building a new Multipart for %s " % (self.config.seccion(),e))
+                                    dEmailList[e] = MIMEMultipart('mixed')
                                 dEmailList[e].add_header('Subject',subject)
                                 dEmailList[e].add_header('To',e)
-                            self.logger.debug("%s: Adding destination %s " % (self.config.seccion(),e))
-                            dEmailList[e].attach( oTmpMsg )
+#                            self.logger.debug("%s: Adding %s to destination %s . now having:\n%s" % (self.config.seccion(),oTmpMsg.__class__,e,dEmailList[e].as_string()))
+                            if bAttach: dEmailList[e].attach( oTmpMsg )
                 else:
                     """
                        Si existe la opcion email en la seccion, ademas de a los indicados por la SQL (si hay) se manda
                        email a estos.
                     """
-                    self.logger.debug("%s: is a multi-destination " % (self.config.seccion()))
+                    self.logger.debug("%s: the sepecific job is a multi-destination " % (self.config.seccion()))
                     for (e,oMsg) in oTmpMsg.items():
                         #self.logger.debug("List of parts ? To: %s " % (e))
-                        self.logger.debug("%s: setting destination %s " % (self.config.seccion(),e))
+                        self.logger.debug("%s: job destination %s over class %s " % (self.config.seccion(),e,oMsg.__class__))
                         if not dEmailList.has_key(e):
+                            self.logger.debug("%s: building a new Multipart for %s " % (self.config.seccion(),e))
                             dEmailList[e] = MIMEMultipart()
                             dEmailList[e].add_header('Subject',subject)
                             dEmailList[e].add_header('To',e)
                         dEmailList[e].attach( oMsg )
-                        if self.config.has_option(seccion,'email'):
+#                        if self.config.has_option(seccion,'email'):
+                        if aEmails and len(aEmails):
                             for ee in aEmails:
                                 if ee == e: continue;
-                                self.logger.debug("%s: Adding  destination %s " % (self.config.seccion(),ee))
+                                self.logger.debug("%s: Topping with additional destination %s " % (self.config.seccion(),ee))
                                 if not dEmailList.has_key(ee):
+                                    self.logger.debug("%s: building a new Multipart for %s " % (self.config.seccion(),ee))
                                     dEmailList[ee] = MIMEMultipart()
                                     dEmailList[ee].add_header('Subject',subject)
                                     dEmailList[ee].add_header('To',ee)
@@ -230,6 +242,7 @@ class Schedule():
                 self.logger.exception("When loading job %s " % (seccion))
                 continue
                 
+        self.logger.info("ALL Jobs ran. ready to transport the output")
         #FIXME: Credentials to authenticate on the SMTP Server need to be on config file!
         if self.config.has_option('General','smtp-user'):
             user = self.config.get('General','smtp-user')
@@ -245,14 +258,21 @@ class Schedule():
             for (e,oBody) in dEmailList.items():
                 try:
                     #print e, oBody
-                    self.logger.debug("Sending email to %s , and here is a sample:\n%s" % (e,oBody.as_string()))
+                    self.logger.debug("Preparing email for %s" % (e))
+                    for part in oBody.walk():
+                        try:
+                            self.logger.debug("\t%s / %s boundary %s " % (part.get_content_maintype(),part.get_content_subtype(),part.get_boundary()))
+                            self.logger.debug("\tContent Disposition : %s - Content ID: %s " % (part.get_all('Content-disposition'),part.get_all('Content-ID')))
+                            self.logger.debug("\tsample: %s\n----- next -----" % (part.get_payload(decode=False)[:75]))
+                        except:
+                            self.logger.debug("----- next -----")
                     smtpserver = smtplib.SMTP(servidor_correo,port)
                     #smtpserver = smtplib.SMTP("mail.biomundo.eu",587)
                     smtpserver.ehlo()
                     smtpserver.starttls()
                     smtpserver.ehlo
                     if user: smtpserver.login(user, pwd)
-                    self.logger.debug("enviando e-mail a : %s " % (e))
+                    self.logger.debug("transfering data for %s" % (e))
                     smtpserver.sendmail(varfrom,e,oBody.as_string())
                     #smtp.sendmail(varfrom,e,oBody.as_string())
                     self.logger.debug('done!')

@@ -7,6 +7,7 @@ __date__ ="$Jul 19, 2014 11:33:46 AM$"
 
 import traceback, logging, os, MySQLdb
 import subprocess
+import urllib2
 import urllib
 from lxml import html
 
@@ -173,7 +174,7 @@ class SQLFileQuery (TabbedData):
     def __init__ (self,oCfg,seccion=None):
         self.requiredFields = ('mysql_server','mysql_user','mysql_pass','mysql_dbase','fuente')
         self.requiredPaths = ('sql_path','base-path')
-        self.localGroups = ('mysql')
+        self.localGroups = ('mysql',)
         DataExtractor.__init__ (self,oCfg)
         dMysql = self.params.getCfgGroup('mysql')
         self.logger.debug("Conex: %s " % dMysql)
@@ -295,8 +296,13 @@ class HTMLFetch (DataExtractor):
 
         try:
             self.logger.debug("%s : Grabbing from %s " % (self.params.seccion(),'http://'+url+encodedget))
-            file = urllib.urlopen('http://'+url+encodedget,encodedform)
-            self.rawData = file.read()
+            full_url = 'http://'+url+encodedget
+            file = urllib2.urlopen(full_url,encodedform)
+            self.rawData = (html.fromstring(file.read(),base_url="http://%s"%(url)),) 
+#            file = urllib2.urlopen('http://'+url+encodedget,encodedform)
+#            self.rawData = file.read()
+            
+#            self.htmlData = html.fromstring(file.read(),base_url="http://%s"%(url)) 
             file.close()
         except Exception,e:
             htmltxt = "No se pudo abrir la url %s :=> %s " % ('http://'+url+encodedget,str(e))
@@ -382,8 +388,9 @@ class SQLValuesToWebFetch (SQLFileQuery):
 
             try:
                 self.logger.debug("%s : Grabbing url %s with form: %s " % (self.params.seccion(),'http://'+url+encodedget,encodedform))
-                file = urllib.urlopen('http://'+url+encodedget,encodedform)
-                tmpval = (file.read(),) 
+                full_url = 'http://'+url+encodedget
+                file = urllib2.urlopen(full_url,encodedform)
+                tmpval = (html.fromstring(file.read(),base_url="http://%s"%(url)),) 
                 if emailfld:
                     if aV.has_key(emailfld): 
                         tmpval += (aV[emailfld],)
@@ -392,8 +399,8 @@ class SQLValuesToWebFetch (SQLFileQuery):
 #                self.logger.debug(self.rawData[-1])
                 file.close()
             except Exception,e:
-                html = "No se pudo abrir la url %s :=> %s " % ('http://'+url+encodedget,str(e))
-                self.logger.exception(html)
+                html_txt = "No se pudo abrir la url %s :=> %s " % ('http://'+url+encodedget,str(e))
+                self.logger.exception(html_txt)
                 raise e
 
 
