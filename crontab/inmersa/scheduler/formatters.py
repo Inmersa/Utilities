@@ -340,7 +340,7 @@ class ExcelFormat(DataFormatter):
                     #self.logger.debug("row(%s) col(%s) value(%s) " % (i,k,str(v)))
                     ws.write(i,j,v)
                     j += 1
-        item = DataItem(None,'application/xls')
+        item = DataItem('','application/xls')
         wb.save(item)
         self.add(item)
         
