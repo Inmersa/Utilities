@@ -12,6 +12,17 @@ param
     [string] $HostName
 )
 
+$Logfile = "C:\Windows\Temp\$(gc env:computername).log"
+
+Function LogWrite
+{
+   Param ([string]$logstring)
+
+   Add-content $Logfile -value $logstring
+}
+
+LogWrite "Just getting started ... "
+
 #################################################################################################################################
 #                                             Helper Functions                                                                  #
 #################################################################################################################################
@@ -99,7 +110,6 @@ function Add-FirewallException
     # Add a new firewall rule
     netsh advfirewall firewall add rule name="Windows Remote Management (HTTPS-In)" dir=in action=allow protocol=TCP localport=$port
 }
-
 
 #################################################################################################################################
 #                                              Configure WinRM                                                                  #
